@@ -23,6 +23,15 @@ class BrowserConfig(BaseModel):
     timeout: int = Field(default=30000, description="Default timeout in milliseconds")
     viewport_width: int = Field(default=1280, description="Viewport width in pixels")
     viewport_height: int = Field(default=720, description="Viewport height in pixels")
+    args: list[str] | None = Field(default=None, description="Additional browser arguments")
+    slow_mo: int = Field(default=0, description="Slow down operations by milliseconds")
+    locale: str | None = Field(default=None, description="Locale for browser (e.g., 'en-US')")
+    timezone: str | None = Field(default=None, description="Timezone for browser (e.g., 'America/New_York')")
+
+    @property
+    def viewport(self) -> dict[str, int]:
+        """Get viewport as dict."""
+        return {"width": self.viewport_width, "height": self.viewport_height}
 
     @field_validator("browsers")
     @classmethod

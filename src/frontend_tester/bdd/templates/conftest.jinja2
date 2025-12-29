@@ -1,0 +1,45 @@
+"""Pytest configuration for BDD tests."""
+
+import pytest
+from pathlib import Path
+
+# Import fixtures from browser.py
+from .browser import *  # noqa: F403, F401
+
+
+def pytest_configure(config):
+    """Configure pytest.
+
+    Args:
+        config: Pytest config object
+    """
+    # Add custom markers
+    config.addinivalue_line(
+        "markers", "smoke: mark test as smoke test (quick validation)"
+    )
+    config.addinivalue_line(
+        "markers", "regression: mark test as regression test"
+    )
+    config.addinivalue_line(
+        "markers", "slow: mark test as slow running"
+    )
+
+
+def pytest_bdd_step_error(
+    request, feature, scenario, step, step_func, step_func_args, exception
+):
+    """Called when a step fails.
+
+    Args:
+        request: Pytest request object
+        feature: Feature object
+        scenario: Scenario object
+        step: Step object
+        step_func: Step function
+        step_func_args: Step function arguments
+        exception: Exception that was raised
+    """
+    # Log step failure details
+    print(f"\n❌ Step failed: {step.keyword} {step.name}")
+    print(f"   Feature: {feature.name}")
+    print(f"   Scenario: {scenario.name}")

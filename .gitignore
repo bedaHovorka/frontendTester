@@ -47,6 +47,9 @@ htmlcov/
 .hypothesis/
 
 # Frontend Tester specific
+# Test project directory (created during development/testing)
+/.frontend-tester/
+# But allow in user projects
 .frontend-tester/reports/
 .frontend-tester/baselines/*.png
 .frontend-tester/baselines/*.jpg

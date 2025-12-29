@@ -30,21 +30,22 @@ dependencies = [
     # Templates
     "jinja2>=3.1.2",
 
-    # BDD Framework (for future use)
+    # BDD Framework
     "pytest-bdd>=7.0.0",
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",  # Required for async fixtures and step definitions
+
+    # Browser Automation (Phase 2)
+    "playwright>=1.40.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
     "ruff>=0.1.0",
     "assertpy>=1.1",
-]
-
-playwright = [
-    "playwright>=1.40.0",
 ]
 
 ai = [
@@ -63,7 +64,7 @@ docker = [
 ]
 
 all = [
-    "frontend-tester[dev,playwright,ai,visual,docker]",
+    "frontend-tester[dev,ai,visual,docker]",
 ]
 
 [project.scripts]
@@ -85,6 +86,8 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
 line-length = 100

@@ -1,0 +1,53 @@
+services:
+  # Run tests with Chromium (default)
+  test-chromium:
+    build: .
+    volumes:
+      - ./.frontend-tester:/app/.frontend-tester
+      - ./reports:/app/reports
+    environment:
+      - FRONTEND_TESTER_BROWSER=chromium
+      - FRONTEND_TESTER_HEADLESS=true
+    command: uv run frontend-tester run
+
+  # Run tests with Firefox
+  test-firefox:
+    build: .
+    volumes:
+      - ./.frontend-tester:/app/.frontend-tester
+      - ./reports:/app/reports
+    environment:
+      - FRONTEND_TESTER_BROWSER=firefox
+      - FRONTEND_TESTER_HEADLESS=true
+    command: uv run frontend-tester run
+
+  # Run tests with WebKit
+  test-webkit:
+    build: .
+    volumes:
+      - ./.frontend-tester:/app/.frontend-tester
+      - ./reports:/app/reports
+    environment:
+      - FRONTEND_TESTER_BROWSER=webkit
+      - FRONTEND_TESTER_HEADLESS=true
+    command: uv run frontend-tester run
+
+  # Run all browsers sequentially
+  test-all:
+    build: .
+    volumes:
+      - ./.frontend-tester:/app/.frontend-tester
+      - ./reports:/app/reports
+    environment:
+      - FRONTEND_TESTER_HEADLESS=true
+    command: >
+      sh -c "
+        uv run frontend-tester run --browser chromium &&
+        uv run frontend-tester run --browser firefox &&
+        uv run frontend-tester run --browser webkit
+      "
+
+# Usage:
+# Run all browsers in parallel: docker-compose up
+# Run specific browser: docker-compose up test-chromium
+# Run all sequentially: docker-compose up test-all

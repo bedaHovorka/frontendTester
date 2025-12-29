@@ -1,0 +1,91 @@
+"""Browser fixtures for Playwright."""
+
+import asyncio
+from typing import Generator
+
+import pytest
+from playwright.async_api import Page, BrowserContext
+
+from frontend_tester.playwright_runner.browser_manager import browser_manager
+from frontend_tester.core.config import load_config
+
+
+@pytest.fixture(scope="session")
+def event_loop() -> Generator:
+    """Create event loop for async tests.
+
+    Yields:
+        Event loop instance
+    """
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="session")
+def config():
+    """Load project configuration.
+
+    Returns:
+        Project configuration
+    """
+    return load_config()
+
+
+@pytest.fixture(scope="session")
+def base_url(config):
+    """Get base URL from configuration.
+
+    Args:
+        config: Project configuration
+
+    Returns:
+        Base URL for testing
+    """
+    if not config.target_urls:
+        return "http://localhost:3000"
+    return config.target_urls[0]
+
+
+@pytest.fixture(scope="session")
+async def browser_mgr(config):
+    """Create browser manager for the session.
+
+    Args:
+        config: Project configuration
+
+    Yields:
+        Browser manager instance
+    """
+    async with browser_manager(config.browser) as mgr:
+        yield mgr
+
+
+@pytest.fixture
+async def context(browser_mgr) -> BrowserContext:
+    """Create a new browser context for each test.
+
+    Args:
+        browser_mgr: Browser manager instance
+
+    Yields:
+        Browser context
+    """
+    ctx = await browser_mgr.create_context()
+    yield ctx
+    await ctx.close()
+
+
+@pytest.fixture
+async def page(context: BrowserContext) -> Page:
+    """Create a new page for each test.
+
+    Args:
+        context: Browser context
+
+    Yields:
+        Page instance
+    """
+    pg = await context.new_page()
+    yield pg
+    await pg.close()

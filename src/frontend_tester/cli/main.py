@@ -5,7 +5,7 @@ from typing_extensions import Annotated
 
 from frontend_tester import __version__
 from frontend_tester.cli.utils import console, print_header
-from frontend_tester.cli.commands import init, config as config_cmd
+from frontend_tester.cli.commands import init, config as config_cmd, run as run_cmd
 
 # Create the main Typer app
 app = typer.Typer(
@@ -53,6 +53,7 @@ def main(
 # Register subcommands
 app.command(name="init")(init.init_command)
 app.command(name="config")(config_cmd.config_command)
+app.command(name="run")(run_cmd.run_command)
 
 
 # Placeholder commands for future implementation
@@ -67,19 +68,6 @@ def generate(
     """
     console.print("[yellow]This command is not yet implemented.[/yellow]")
     console.print("It will be available in Phase 3: AI Test Generation")
-
-
-@app.command()
-def run(
-    test_path: Annotated[str, typer.Argument(help="Path to tests to run")] = ".",
-) -> None:
-    """
-    Run tests using pytest-bdd.
-
-    [yellow]Coming in Phase 2: Playwright Integration[/yellow]
-    """
-    console.print("[yellow]This command is not yet implemented.[/yellow]")
-    console.print("It will be available in Phase 2: Playwright Integration")
 
 
 @app.command()

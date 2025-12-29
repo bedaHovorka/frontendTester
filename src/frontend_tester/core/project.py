@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Optional
 
+from jinja2 import Environment, PackageLoader
+
 from frontend_tester.core.config import ProjectConfig
 
 
@@ -42,14 +44,20 @@ def create_project_structure(path: Path, config: ProjectConfig) -> None:
     # Create example feature file
     _create_example_feature(project_dir / "features" / "example.feature", config)
 
+    # Create test file to register scenarios
+    _create_test_file(project_dir / "features" / "test_features.py")
+
     # Create step definitions
     _create_step_init(project_dir / "steps" / "__init__.py")
-    _create_common_steps(project_dir / "steps" / "common_steps.py")
+    _create_common_steps(project_dir / "steps" / "test_common_steps.py")
 
     # Create support files
     _create_support_init(project_dir / "support" / "__init__.py")
     _create_browser_fixture(project_dir / "support" / "browser.py")
     _create_conftest(project_dir / "support" / "conftest.py")
+
+    # Create root conftest.py that imports everything
+    _create_root_conftest(project_dir / "conftest.py")
 
     # Create README in project dir
     _create_project_readme(project_dir / "README.md", config)
@@ -57,27 +65,63 @@ def create_project_structure(path: Path, config: ProjectConfig) -> None:
 
 def _create_example_feature(path: Path, config: ProjectConfig) -> None:
     """Create an example feature file."""
+    target_url = config.target_urls[0] if config.target_urls else "https://example.com"
+
     content = f"""Feature: Example Web Application Test
   As a tester
   I want to verify the web application works correctly
   So that users have a good experience
 
-  Background:
-    Given I am on the homepage
-
+  @smoke
   Scenario: Homepage loads successfully
-    When I navigate to "{config.target_urls[0] if config.target_urls else 'http://localhost:3000'}"
-    Then the page should load
-    And the page title should be visible
+    Given I am on "{target_url}"
+    Then I should see "Example Domain"
+    And the page title should be "Example Domain"
 
-  Scenario: Visual regression check
-    Given I am on the homepage
-    When the page has loaded completely
-    Then the page should match the baseline "homepage"
+  @smoke
+  Scenario: Page title verification
+    Given I am on "{target_url}"
+    Then the URL should be "{target_url}"
+    And the page title should contain "Example"
+
+  @regression
+  Scenario: Content verification
+    Given I am on "{target_url}"
+    Then I should see "This domain is for use in illustrative examples"
+    And I should see "More information"
 
   # TODO: Add more scenarios here
   # Use 'frontend-tester generate <url>' to auto-generate tests
 """
+    path.write_text(content)
+
+
+def _create_test_file(path: Path) -> None:
+    """Create test file to register scenarios."""
+    content = '''"""Auto-generated test file for BDD scenarios.
+
+This file registers all scenarios from feature files so pytest can discover them.
+pytest-bdd requires test files (test_*.py) to link feature files to test execution.
+"""
+
+import sys
+from pathlib import Path
+from pytest_bdd import scenarios
+
+# Get the directory containing this file (features/)
+FEATURES_DIR = Path(__file__).parent
+
+# Add parent directory to path so we can import from steps/
+sys.path.insert(0, str(FEATURES_DIR.parent))
+
+# Import step definitions so they get registered with pytest-bdd
+from steps import common_steps  # noqa: F401, E402
+
+# Register all scenarios from all .feature files in this directory
+# This creates a pytest test for each scenario in each feature file
+for feature_file in FEATURES_DIR.glob("*.feature"):
+    scenarios(feature_file.name)
+'''
     path.write_text(content)
 
 
@@ -90,55 +134,14 @@ def _create_step_init(path: Path) -> None:
 
 def _create_common_steps(path: Path) -> None:
     """Create common step definitions."""
-    content = '''"""Common step definitions used across features."""
+    # Copy common steps from the bdd module
+    import importlib.resources
 
-from pytest_bdd import given, when, then, parsers
+    # Read the common_steps.py from the bdd package
+    from frontend_tester.bdd import common_steps
+    import inspect
 
-# NOTE: These are placeholder implementations
-# Actual Playwright integration will be added in Phase 2
-
-
-@given("I am on the homepage")
-def on_homepage(browser):
-    """Navigate to homepage - placeholder."""
-    # TODO: Implement with Playwright in Phase 2
-    pass
-
-
-@when(parsers.parse('I navigate to "{url}"'))
-def navigate_to_url(browser, url: str):
-    """Navigate to a specific URL - placeholder."""
-    # TODO: Implement with Playwright in Phase 2
-    pass
-
-
-@then("the page should load")
-def page_loads(browser):
-    """Verify page loads - placeholder."""
-    # TODO: Implement with Playwright in Phase 2
-    pass
-
-
-@then("the page title should be visible")
-def title_visible(browser):
-    """Verify title is visible - placeholder."""
-    # TODO: Implement with Playwright in Phase 2
-    pass
-
-
-@when("the page has loaded completely")
-def page_loaded_completely(browser):
-    """Wait for page to load completely - placeholder."""
-    # TODO: Implement with Playwright in Phase 2
-    pass
-
-
-@then(parsers.parse('the page should match the baseline "{baseline_name}"'))
-def visual_regression_check(browser, baseline_name: str):
-    """Visual regression check - placeholder."""
-    # TODO: Implement visual regression in Phase 4
-    pass
-'''
+    content = inspect.getsource(common_steps)
     path.write_text(content)
 
 
@@ -150,49 +153,47 @@ def _create_support_init(path: Path) -> None:
 
 
 def _create_browser_fixture(path: Path) -> None:
-    """Create browser fixture placeholder."""
-    content = '''"""Browser management for tests."""
-
-# NOTE: This is a placeholder
-# Actual Playwright browser fixtures will be added in Phase 2
-
-import pytest
-
-
-@pytest.fixture
-def browser():
-    """Browser fixture - placeholder."""
-    # TODO: Implement Playwright browser setup in Phase 2
-    # Will include:
-    # - Browser launch (headless/headed)
-    # - Context creation
-    # - Page creation
-    # - Cleanup
-    yield None  # Placeholder
-'''
+    """Create browser fixture with Playwright."""
+    # Use Jinja2 template for browser fixtures
+    env = Environment(loader=PackageLoader("frontend_tester", "bdd/templates"))
+    template = env.get_template("browser.jinja2")
+    content = template.render()
     path.write_text(content)
 
 
 def _create_conftest(path: Path) -> None:
     """Create pytest-bdd configuration."""
-    content = '''"""pytest-bdd configuration for Frontend Tester."""
+    # NOTE: This creates conftest.py in support/ directory
+    # The root conftest.py is created separately below
+    env = Environment(loader=PackageLoader("frontend_tester", "bdd/templates"))
+    template = env.get_template("conftest.jinja2")
+    content = template.render()
+    path.write_text(content)
 
-import pytest
+
+def _create_root_conftest(path: Path) -> None:
+    """Create root conftest.py that imports fixtures and step definitions."""
+    content = '''"""Root conftest.py for pytest configuration and fixture discovery.
+
+This file ensures pytest discovers:
+- Fixtures from support/browser.py
+- Configuration from support/conftest.py
+- Step definitions (imported directly here)
+"""
+
+import sys
 from pathlib import Path
 
-# Configure pytest-bdd to find features
-pytest_plugins = ["pytest_bdd.plugin"]
+# Add current directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
+# Import fixtures and configuration from support
+from support.conftest import *  # noqa: F403, F401
 
-def pytest_configure(config):
-    """Configure pytest with custom settings."""
-    # Set features directory
-    features_dir = Path(__file__).parent.parent / "features"
-    config.option.features_base_dir = str(features_dir)
-
-
-# Import fixtures from browser.py
-from .browser import browser  # noqa: F401, E402
+# Import ALL step definitions directly
+# NOTE: pytest-bdd 8.x requires step definitions to be in conftest.py or test files
+# Simply importing from another module doesn't work
+from steps.test_common_steps import *  # noqa: F403, F401
 '''
     path.write_text(content)
 

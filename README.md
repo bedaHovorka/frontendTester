@@ -6,15 +6,26 @@ Frontend Tester is a specialized testing tool that combines the power of browser
 
 ## Features
 
-### Current (Phase 1)
+### ✅ Phase 1: Project Structure + CLI (Complete)
 - CLI framework with beautiful terminal output (Typer + Rich)
 - Project initialization with `frontend-tester init`
 - Configuration management (YAML + environment variables)
 - BDD/Gherkin test structure setup
 - Template system for test generation
 
+### ✅ Phase 2: Playwright Integration (Complete)
+- Multi-browser support (Chromium, Firefox, WebKit)
+- Async browser automation with Playwright
+- 40+ reusable BDD step definitions
+- `frontend-tester run` command with:
+  - Tag filtering (@smoke, @regression)
+  - Parallel test execution
+  - HTML report generation
+  - Browser override options
+- Docker support for containerized testing
+- Pytest-bdd integration with async support
+
 ### Coming Soon
-- **Phase 2**: Playwright integration with Docker for multi-browser testing
 - **Phase 3**: AI-powered test generation using LiteLLM (OpenAI + Anthropic)
 - **Phase 4**: Visual regression testing with screenshot comparison
 - **Phase 5**: Self-healing tests and auto-fix capabilities
@@ -92,7 +103,32 @@ Feature: User Login
     And I should see "Welcome back" message
 ```
 
-### 4. Configuration Management
+### 4. Run Tests
+
+```bash
+# Run all tests
+uv run frontend-tester run
+
+# Run specific feature
+uv run frontend-tester run --feature login.feature
+
+# Run with tag filter
+uv run frontend-tester run --tag smoke
+
+# Run in parallel (4 workers)
+uv run frontend-tester run --parallel 4
+
+# Run with visible browser (headed mode)
+uv run frontend-tester run --headed
+
+# Run with specific browser
+uv run frontend-tester run --browser firefox
+
+# Generate HTML report
+uv run frontend-tester run --html
+```
+
+### 5. Configuration Management
 
 ```bash
 # List all configuration
@@ -123,14 +159,52 @@ Manage configuration (list, get, set).
 - `--value, -v`: Value to set
 - `--global, -g`: Use global config
 
-### `frontend-tester generate <url>` (Phase 3)
+### `frontend-tester run [path]`
+Run BDD tests using pytest-bdd and Playwright.
+
+**Options:**
+- `--feature, -f`: Run specific feature file
+- `--tag, -t`: Run tests with specific tag (@smoke, @regression)
+- `--browser, -b`: Override browser (chromium, firefox, webkit)
+- `--headed`: Run with visible browser (default: headless)
+- `--parallel, -n`: Number of parallel workers
+- `--html`: Generate HTML report
+- `--verbose, -v`: Verbose output
+
+### `frontend-tester generate <url>` (Phase 3 - Coming Soon)
 Generate tests from URL using AI analysis.
 
-### `frontend-tester run [path]` (Phase 2)
-Run tests using pytest-bdd.
-
-### `frontend-tester analyze <url>` (Phase 3)
+### `frontend-tester analyze <url>` (Phase 3 - Coming Soon)
 Analyze UI and suggest test scenarios.
+
+## Docker Support
+
+Frontend Tester includes Docker configuration for consistent cross-browser testing.
+
+### Using Docker
+
+```bash
+# Build the Docker image
+docker build -t frontend-tester .
+
+# Run tests in Docker
+docker run -v $(pwd)/.frontend-tester:/app/.frontend-tester frontend-tester
+
+# Run with specific browser
+docker run -e FRONTEND_TESTER_BROWSER=firefox frontend-tester
+```
+
+### Using Docker Compose
+
+```bash
+# Run tests on all browsers in parallel
+docker-compose up
+
+# Run on specific browser
+docker-compose up test-chromium
+docker-compose up test-firefox
+docker-compose up test-webkit
+```
 
 ## Project Structure
 
