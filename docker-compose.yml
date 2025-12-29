@@ -9,6 +9,8 @@ services:
       - FRONTEND_TESTER_BROWSER=chromium
       - FRONTEND_TESTER_HEADLESS=true
     command: uv run frontend-tester run
+    networks:
+      - frontend-testing
 
   # Run tests with Firefox
   test-firefox:
@@ -20,6 +22,8 @@ services:
       - FRONTEND_TESTER_BROWSER=firefox
       - FRONTEND_TESTER_HEADLESS=true
     command: uv run frontend-tester run
+    networks:
+      - frontend-testing
 
   # Run tests with WebKit
   test-webkit:
@@ -31,6 +35,8 @@ services:
       - FRONTEND_TESTER_BROWSER=webkit
       - FRONTEND_TESTER_HEADLESS=true
     command: uv run frontend-tester run
+    networks:
+      - frontend-testing
 
   # Run all browsers sequentially
   test-all:
@@ -46,8 +52,18 @@ services:
         uv run frontend-tester run --browser firefox &&
         uv run frontend-tester run --browser webkit
       "
+    networks:
+      - frontend-testing
+
+networks:
+  frontend-testing:
+    external: true
+    name: frontend-testing
 
 # Usage:
-# Run all browsers in parallel: docker-compose up
-# Run specific browser: docker-compose up test-chromium
-# Run all sequentially: docker-compose up test-all
+# 1. Start the app: cd /home/beda/work/dummy_fe_app && docker-compose up -d
+# 2. Run all browsers in parallel: docker-compose up
+# 3. Run specific browser: docker-compose up test-chromium
+# 4. Run all sequentially: docker-compose up test-all
+#
+# The test containers can access the app at: http://angularjs-demo-app:3000

@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir uv
 # Copy project files
 COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
+COPY tests/ ./tests/
 
 # Install project dependencies (creates .venv with all packages)
 RUN uv sync --extra dev
