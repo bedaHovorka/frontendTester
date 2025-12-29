@@ -1,0 +1,11 @@
+"""Step definitions for {{ feature_name }}."""
+
+from pytest_bdd import given, when, then, parsers
+
+{%- for step in steps %}
+
+@{{ step.decorator }}({{ step.matcher }})
+def {{ step.function_name }}({{ step.parameters }}):
+    """{{ step.description }}"""
+    {{ step.implementation | indent(4) }}
+{%- endfor %}

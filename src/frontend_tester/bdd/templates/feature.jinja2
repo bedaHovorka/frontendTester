@@ -1,0 +1,23 @@
+Feature: {{ feature_name }}
+{%- if feature_description %}
+  {{ feature_description }}
+{%- endif %}
+
+{%- if background_steps %}
+
+  Background:
+{%- for step in background_steps %}
+    {{ step.keyword }} {{ step.text }}
+{%- endfor %}
+{%- endif %}
+
+{%- for scenario in scenarios %}
+
+  Scenario: {{ scenario.name }}
+{%- if scenario.description %}
+    {{ scenario.description }}
+{%- endif %}
+{%- for step in scenario.steps %}
+    {{ step.keyword }} {{ step.text }}
+{%- endfor %}
+{%- endfor %}
