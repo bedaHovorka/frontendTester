@@ -3,12 +3,15 @@ services:
   test-chromium:
     build: .
     volumes:
-      - ./.frontend-tester:/app/.frontend-tester
-      - ./reports:/app/reports
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write, mounted to /test_repo in container)
+    working_dir: /test_repo
     environment:
       - FRONTEND_TESTER_BROWSER=chromium
       - FRONTEND_TESTER_HEADLESS=true
-    command: uv run frontend-tester run
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uv run pytest -v
     networks:
       - frontend-testing
 
@@ -16,12 +19,15 @@ services:
   test-firefox:
     build: .
     volumes:
-      - ./.frontend-tester:/app/.frontend-tester
-      - ./reports:/app/reports
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write)
+    working_dir: /test_repo
     environment:
       - FRONTEND_TESTER_BROWSER=firefox
       - FRONTEND_TESTER_HEADLESS=true
-    command: uv run frontend-tester run
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uv run pytest -v
     networks:
       - frontend-testing
 
@@ -29,12 +35,15 @@ services:
   test-webkit:
     build: .
     volumes:
-      - ./.frontend-tester:/app/.frontend-tester
-      - ./reports:/app/reports
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write)
+    working_dir: /test_repo
     environment:
       - FRONTEND_TESTER_BROWSER=webkit
       - FRONTEND_TESTER_HEADLESS=true
-    command: uv run frontend-tester run
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uv run pytest -v
     networks:
       - frontend-testing
 
@@ -42,16 +51,47 @@ services:
   test-all:
     build: .
     volumes:
-      - ./.frontend-tester:/app/.frontend-tester
-      - ./reports:/app/reports
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write)
+    working_dir: /test_repo
     environment:
       - FRONTEND_TESTER_HEADLESS=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     command: >
       sh -c "
-        uv run frontend-tester run --browser chromium &&
-        uv run frontend-tester run --browser firefox &&
-        uv run frontend-tester run --browser webkit
+        FRONTEND_TESTER_BROWSER=chromium uv run pytest -v &&
+        FRONTEND_TESTER_BROWSER=firefox uv run pytest -v &&
+        FRONTEND_TESTER_BROWSER=webkit uv run pytest -v
       "
+    networks:
+      - frontend-testing
+
+  # AI Analysis service - analyze UI and generate tests
+  analyze:
+    build: .
+    volumes:
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write)
+    working_dir: /test_repo
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uv run frontend-tester analyze http://angularjs-demo-app:3000
+    networks:
+      - frontend-testing
+
+  # Test generation service - generate tests from analysis
+  generate:
+    build: .
+    volumes:
+      - /home/beda/work/dummy_fe_app:/app_repo:ro  # APP_REPO (read-only)
+      - /tmp/dummy_fe_app:/test_repo  # TEST_REPO (read-write)
+    working_dir: /test_repo
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    command: uv run frontend-tester generate http://angularjs-demo-app:3000 --output-dir /test_repo
     networks:
       - frontend-testing
 

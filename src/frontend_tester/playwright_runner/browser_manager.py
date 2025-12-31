@@ -48,6 +48,15 @@ class BrowserManager:
             await self._playwright.stop()
             self._playwright = None
 
+    async def __aenter__(self) -> "BrowserManager":
+        """Async context manager entry."""
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Async context manager exit."""
+        await self.stop()
+
     async def _launch_browser(self, browser_name: str) -> Browser:
         """Launch a specific browser.
 
@@ -128,6 +137,19 @@ class BrowserManager:
             options["timezone_id"] = self.config.timezone
 
         return await browser.new_context(**options)
+
+    async def create_page(self, browser_name: str | None = None, **context_options: Any) -> Page:
+        """Create a new page in a new context.
+
+        Args:
+            browser_name: Browser name, or None for the first configured browser
+            **context_options: Context options
+
+        Returns:
+            Page instance
+        """
+        context = await self.create_context(browser_name, **context_options)
+        return await context.new_page()
 
     @asynccontextmanager
     async def page(

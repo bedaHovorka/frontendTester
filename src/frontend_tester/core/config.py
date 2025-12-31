@@ -101,6 +101,12 @@ class ProjectConfig(BaseModel):
     target_urls: list[str] = Field(
         default=["http://localhost:3000"], description="Target URLs to test"
     )
+    app_repo: str | None = Field(
+        default=None, description="Path to application repository (read-only, for reference)"
+    )
+    test_repo: str | None = Field(
+        default=None, description="Path to test repository (where tests are generated)"
+    )
     browser: BrowserConfig = Field(default_factory=BrowserConfig)
     docker: DockerConfig = Field(default_factory=DockerConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
@@ -140,12 +146,12 @@ class ProjectConfig(BaseModel):
     @classmethod
     def get_default_config_path(cls) -> Path:
         """Get default config path for the current directory."""
-        return Path.cwd() / ".frontend-tester" / "config.yaml"
+        return Path.cwd() / "config.yaml"
 
     @classmethod
     def get_global_config_path(cls) -> Path:
         """Get global config path."""
-        return Path.home() / ".frontend-tester" / "config.yaml"
+        return Path.home() / ".config" / "frontend-tester" / "config.yaml"
 
 
 def load_config(config_path: Path | None = None) -> ProjectConfig:
@@ -154,8 +160,8 @@ def load_config(config_path: Path | None = None) -> ProjectConfig:
 
     Priority:
     1. Specified config_path
-    2. .frontend-tester/config.yaml in current directory
-    3. ~/.frontend-tester/config.yaml (global)
+    2. config.yaml in current directory
+    3. ~/.config/frontend-tester/config.yaml (global)
     4. Default configuration
     """
     if config_path and config_path.exists():

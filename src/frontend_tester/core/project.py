@@ -10,57 +10,81 @@ from frontend_tester.core.config import ProjectConfig
 
 def create_project_structure(path: Path, config: ProjectConfig) -> None:
     """
-    Create the Frontend Tester project structure.
+    Create the Frontend Tester project structure with two directories:
+
+    1. .frontend-tester/ - Configuration and AI-generated tests (empty initially)
+    2. TEST_DIR/ - Visible example tests for learning
 
     Structure:
-        .frontend-tester/
-        ├── config.yaml
-        ├── features/
-        │   └── example.feature
-        ├── steps/
+        .frontend-tester/           # Hidden directory for config and generated content
+        ├── config.yaml             # Configuration
+        ├── features/               # AI-generated test features (empty initially)
+        ├── steps/                  # AI-generated step definitions (empty initially)
+        ├── support/                # Support utilities (empty initially)
+        ├── baselines/              # Visual regression baselines
+        ├── reports/                # Test execution reports
+        └── README.md               # Configuration documentation
+
+        TEST_DIR/                   # Visible example tests
+        ├── features/               # Example feature files
+        │   ├── example.feature
+        │   └── test_features.py
+        ├── steps/                  # Example step definitions
         │   ├── __init__.py
-        │   └── common_steps.py
-        ├── support/
+        │   └── test_common_steps.py
+        ├── support/                # Test support utilities
         │   ├── __init__.py
         │   ├── browser.py
         │   └── conftest.py
-        ├── baselines/
-        └── reports/
+        ├── conftest.py             # Root pytest configuration
+        └── README.md               # Getting started guide
     """
-    # Create main directory
-    project_dir = path / ".frontend-tester"
-    project_dir.mkdir(parents=True, exist_ok=True)
+    # Create .frontend-tester/ directory structure (for config and generated content)
+    frontend_tester_dir = path / ".frontend-tester"
+    frontend_tester_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create subdirectories
-    (project_dir / "features").mkdir(exist_ok=True)
-    (project_dir / "steps").mkdir(exist_ok=True)
-    (project_dir / "support").mkdir(exist_ok=True)
-    (project_dir / "baselines").mkdir(exist_ok=True)
-    (project_dir / "reports").mkdir(exist_ok=True)
+    # Create subdirectories in .frontend-tester/ (empty, for generated content)
+    (frontend_tester_dir / "features").mkdir(exist_ok=True)
+    (frontend_tester_dir / "steps").mkdir(exist_ok=True)
+    (frontend_tester_dir / "support").mkdir(exist_ok=True)
+    (frontend_tester_dir / "baselines").mkdir(exist_ok=True)
+    (frontend_tester_dir / "reports").mkdir(exist_ok=True)
 
-    # Save configuration
-    config.save_to_file(project_dir / "config.yaml")
+    # Save configuration to .frontend-tester/
+    config.save_to_file(frontend_tester_dir / "config.yaml")
 
-    # Create example feature file
-    _create_example_feature(project_dir / "features" / "example.feature", config)
+    # Create README in .frontend-tester/
+    _create_project_readme(frontend_tester_dir / "README.md", config)
 
-    # Create test file to register scenarios
-    _create_test_file(project_dir / "features" / "test_features.py")
+    # Create TEST_DIR/ directory structure (with examples)
+    test_dir = path / "TEST_DIR"
+    test_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create step definitions
-    _create_step_init(project_dir / "steps" / "__init__.py")
-    _create_common_steps(project_dir / "steps" / "test_common_steps.py")
+    # Create subdirectories in TEST_DIR/
+    (test_dir / "features").mkdir(exist_ok=True)
+    (test_dir / "steps").mkdir(exist_ok=True)
+    (test_dir / "support").mkdir(exist_ok=True)
 
-    # Create support files
-    _create_support_init(project_dir / "support" / "__init__.py")
-    _create_browser_fixture(project_dir / "support" / "browser.py")
-    _create_conftest(project_dir / "support" / "conftest.py")
+    # Create example feature file in TEST_DIR/
+    _create_example_feature(test_dir / "features" / "example.feature", config)
 
-    # Create root conftest.py that imports everything
-    _create_root_conftest(project_dir / "conftest.py")
+    # Create test file to register scenarios in TEST_DIR/
+    _create_test_file(test_dir / "features" / "test_features.py")
 
-    # Create README in project dir
-    _create_project_readme(project_dir / "README.md", config)
+    # Create step definitions in TEST_DIR/
+    _create_step_init(test_dir / "steps" / "__init__.py")
+    _create_common_steps(test_dir / "steps" / "test_common_steps.py")
+
+    # Create support files in TEST_DIR/
+    _create_support_init(test_dir / "support" / "__init__.py")
+    _create_browser_fixture(test_dir / "support" / "browser.py")
+    _create_conftest(test_dir / "support" / "conftest.py")
+
+    # Create root conftest.py in TEST_DIR/
+    _create_root_conftest(test_dir / "conftest.py")
+
+    # Create README in TEST_DIR/
+    _create_test_dir_readme(test_dir / "README.md", config)
 
 
 def _create_example_feature(path: Path, config: ProjectConfig) -> None:
@@ -198,60 +222,139 @@ from steps.test_common_steps import *  # noqa: F403, F401
     path.write_text(content)
 
 
-def _create_project_readme(path: Path, config: ProjectConfig) -> None:
-    """Create README in project directory."""
-    content = f"""# Frontend Tester Project: {config.name}
 
-This directory contains your Frontend Tester configuration and test files.
+
+def _create_project_readme(path: Path, config: ProjectConfig) -> None:
+    """Create README in .frontend-tester/ directory."""
+    content = f"""# Frontend Tester Configuration: {config.name}
+
+This directory (`.frontend-tester/`) contains project **configuration** and **AI-generated test content**.
 
 ## Structure
 
-- `config.yaml` - Project configuration
-- `features/` - Gherkin feature files (.feature)
-- `steps/` - Python step definitions
-- `support/` - Browser fixtures and utilities
+- `config.yaml` - Project configuration (browsers, LLM settings, etc.)
+- `features/` - AI-generated Gherkin feature files (empty initially)
+- `steps/` - AI-generated step definitions (empty initially)
+- `support/` - Support utilities (empty initially)
 - `baselines/` - Visual regression baseline images
 - `reports/` - Test execution reports
 
-## Getting Started
+## Configuration
 
-### Run Tests (Phase 2+)
+Edit `config.yaml` to configure:
+- Target URLs for testing
+- Browser settings (chromium, firefox, webkit)
+- LLM provider and model for AI generation
+- Visual regression settings
+
+View current configuration:
 ```bash
-frontend-tester run
+frontend-tester config list
 ```
 
-### Generate Tests with AI (Phase 3+)
+Update settings:
+```bash
+frontend-tester config set --key llm.model --value gpt-4
+frontend-tester config set --key browser.headless --value false
+```
+
+## Generating Tests
+
+Generate tests from a URL:
 ```bash
 frontend-tester generate {config.target_urls[0] if config.target_urls else "http://localhost:3000"}
 ```
 
-### Update Configuration
+Generated tests will be placed in this directory's subdirectories.
+
+## Example Tests
+
+For learning and reference, check out the `TEST_DIR/` directory which contains:
+- Example feature files
+- Example step definitions
+- Working pytest configuration
+- Ready-to-run tests
+
+## Documentation
+
+For full documentation, see: https://github.com/yourusername/frontend-tester
+"""
+    path.write_text(content)
+
+
+def _create_test_dir_readme(path: Path, config: ProjectConfig) -> None:
+    """Create README in TEST_DIR/ directory."""
+    content = f"""# Frontend Tester Example Tests: {config.name}
+
+This directory (`TEST_DIR/`) contains **example tests** to help you learn how to use Frontend Tester.
+
+## Quick Start
+
+Run the example tests:
 ```bash
+cd TEST_DIR
+pytest -v
+```
+
+Run with a specific browser:
+```bash
+pytest -v --browser chromium
+pytest -v --browser firefox
+```
+
+Run specific test tags:
+```bash
+pytest -v -m smoke         # Run smoke tests only
+pytest -v -m regression    # Run regression tests only
+```
+
+## Structure
+
+- `features/` - Example Gherkin feature files
+  - `example.feature` - Example scenarios for {config.target_urls[0] if config.target_urls else "https://example.com"}
+  - `test_features.py` - Test file to register scenarios
+- `steps/` - Example step definitions with Playwright
+  - `test_common_steps.py` - Common steps (Given, When, Then)
+- `support/` - Browser fixtures and pytest configuration
+  - `browser.py` - Playwright browser fixtures
+  - `conftest.py` - pytest configuration
+- `conftest.py` - Root pytest configuration
+
+## Learning Path
+
+1. **Read `features/example.feature`** - See how Gherkin scenarios are written
+2. **Explore `steps/test_common_steps.py`** - Understand step definitions and Playwright usage
+3. **Check `support/browser.py`** - Learn about browser fixtures
+4. **Run tests** - Execute `pytest -v` to see everything in action
+5. **Modify examples** - Try changing scenarios or adding new steps
+
+## Configuration
+
+This test directory uses configuration from `../.frontend-tester/config.yaml`.
+
+View configuration:
+```bash
+cd ..
 frontend-tester config list
-frontend-tester config set --key llm.model --value gpt-4
 ```
 
-## Writing Tests
+## AI-Generated Tests
 
-Feature files use Gherkin syntax. Example:
+Once you're comfortable with the examples, generate tests for your application:
 
-```gherkin
-Feature: User Login
-  Scenario: Successful login
-    Given I am on the login page
-    When I enter "user@example.com" in the email field
-    And I click the "Login" button
-    Then I should see the dashboard
+```bash
+cd ..
+frontend-tester generate {config.target_urls[0] if config.target_urls else "http://localhost:3000"}
 ```
 
-Step definitions are in `steps/` directory.
+Generated tests will be placed in `../.frontend-tester/features/` and `../.frontend-tester/steps/`.
 
 ## Next Steps
 
-1. Edit `config.yaml` to configure your browsers, URLs, and LLM settings
-2. Write feature files in `features/` directory
-3. Run tests with `frontend-tester run` (coming in Phase 2)
-4. Use AI to generate tests with `frontend-tester generate` (coming in Phase 3)
+- Customize `features/example.feature` for your use case
+- Add new step definitions in `steps/`
+- Run tests in CI/CD pipelines
+- Explore visual regression testing (Phase 4)
 
 ## Documentation
 
@@ -262,7 +365,7 @@ For full documentation, see: https://github.com/yourusername/frontend-tester
 
 def find_project_root(start_path: Optional[Path] = None) -> Optional[Path]:
     """
-    Find the Frontend Tester project root by looking for .frontend-tester directory.
+    Find the Frontend Tester project root by looking for .frontend-tester/ directory.
 
     Args:
         start_path: Starting directory (defaults to cwd)
@@ -274,6 +377,7 @@ def find_project_root(start_path: Optional[Path] = None) -> Optional[Path]:
 
     # Check current directory and all parents
     for directory in [current] + list(current.parents):
+        # Look for .frontend-tester/ directory
         if (directory / ".frontend-tester").is_dir():
             return directory
 

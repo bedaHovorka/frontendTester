@@ -16,7 +16,7 @@ def test_create_project_structure():
 
         create_project_structure(project_path, config)
 
-        # Check directories exist
+        # Check .frontend-tester directories exist (for generated content)
         frontend_tester_dir = project_path / ".frontend-tester"
         assert_that(frontend_tester_dir.exists()).is_true()
         assert_that((frontend_tester_dir / "features").exists()).is_true()
@@ -25,12 +25,24 @@ def test_create_project_structure():
         assert_that((frontend_tester_dir / "baselines").exists()).is_true()
         assert_that((frontend_tester_dir / "reports").exists()).is_true()
 
-        # Check files exist
+        # Check .frontend-tester files exist
         assert_that((frontend_tester_dir / "config.yaml").exists()).is_true()
-        assert_that((frontend_tester_dir / "features" / "example.feature").exists()).is_true()
-        assert_that((frontend_tester_dir / "steps" / "common_steps.py").exists()).is_true()
-        assert_that((frontend_tester_dir / "support" / "browser.py").exists()).is_true()
         assert_that((frontend_tester_dir / "README.md").exists()).is_true()
+
+        # Check TEST_DIR directories exist (for examples)
+        test_dir = project_path / "TEST_DIR"
+        assert_that(test_dir.exists()).is_true()
+        assert_that((test_dir / "features").exists()).is_true()
+        assert_that((test_dir / "steps").exists()).is_true()
+        assert_that((test_dir / "support").exists()).is_true()
+
+        # Check TEST_DIR files exist
+        assert_that((test_dir / "features" / "example.feature").exists()).is_true()
+        assert_that((test_dir / "features" / "test_features.py").exists()).is_true()
+        assert_that((test_dir / "steps" / "test_common_steps.py").exists()).is_true()
+        assert_that((test_dir / "support" / "browser.py").exists()).is_true()
+        assert_that((test_dir / "conftest.py").exists()).is_true()
+        assert_that((test_dir / "README.md").exists()).is_true()
 
 
 def test_find_project_root():

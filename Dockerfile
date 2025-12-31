@@ -14,8 +14,8 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 
-# Install project dependencies (creates .venv with all packages)
-RUN uv sync --extra dev
+# Install project dependencies (creates .venv with all packages, including AI)
+RUN uv sync --extra dev --extra ai
 
 # Install Playwright browser dependencies in builder stage
 RUN uv run playwright install-deps
@@ -35,6 +35,9 @@ COPY --from=builder /app /app
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV FRONTEND_TESTER_HEADLESS=true
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Create directories for APP_REPO and TEST_REPO (will be mounted)
+RUN mkdir -p /app_repo /test_repo
 
 # Default command: run tests
 CMD ["uv", "run", "frontend-tester", "run"]

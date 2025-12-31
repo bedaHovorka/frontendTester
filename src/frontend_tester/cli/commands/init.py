@@ -37,25 +37,25 @@ def init_command(
     ] = False,
 ) -> None:
     """
-    Initialize a new Frontend Tester project.
+    Initialize a new Frontend Tester test repository.
 
-    Creates a .frontend-tester/ directory with:
-    • Configuration file (config.yaml)
-    • Feature files directory (Gherkin scenarios)
-    • Step definitions (Python test implementation)
-    • Support files (browser fixtures, etc.)
+    Creates test directory structure with:
+    • config.yaml - Configuration
+    • features/ - Test features (example + AI-generated)
+    • steps/ - Step definitions
+    • support/ - Browser fixtures and pytest config
     """
     target_path = path or Path.cwd()
 
     # Check if project already exists
-    project_dir = target_path / ".frontend-tester"
-    if project_dir.exists():
+    config_file = target_path / "config.yaml"
+    if config_file.exists():
         print_error(f"Frontend Tester project already exists at {target_path}")
         print_info("Run 'frontend-tester config' to view/edit configuration")
         raise typer.Exit(1)
 
-    print_header("Frontend Tester - Project Initialization")
-    console.print("\nThis wizard will help you set up a new test project.\n")
+    print_header("Frontend Tester - Test Repository Initialization")
+    console.print("\nThis wizard will help you set up a new test repository.\n")
 
     # Get project configuration
     if non_interactive:
@@ -65,15 +65,15 @@ def init_command(
 
     # Create project structure
     try:
-        print_info("Creating project structure...")
+        print_info("Creating test repository structure...")
         create_project_structure(target_path, config)
-        print_success("Project structure created")
+        print_success("Test repository created")
 
         # Display summary
         _display_summary(target_path, config)
 
     except Exception as e:
-        print_error(f"Failed to create project: {e}")
+        print_error(f"Failed to create test repository: {e}")
         raise typer.Exit(1)
 
 
@@ -162,27 +162,38 @@ def _get_config_interactive(
 
 def _display_summary(path: Path, config: ProjectConfig) -> None:
     """Display project creation summary."""
-    console.print("\n[bold green]✓ Project initialized successfully![/bold green]\n")
+    console.print("\n[bold green]✓ Test repository initialized successfully![/bold green]\n")
 
-    console.print("[bold cyan]Project Details:[/bold cyan]")
+    console.print("[bold cyan]Repository Details:[/bold cyan]")
     console.print(f"  Name: {config.name}")
-    console.print(f"  Location: {path / '.frontend-tester'}")
+    console.print(f"  Location: {path.absolute()}")
+    console.print(f"  Config: {path / 'config.yaml'}")
     console.print(f"  Target URLs: {', '.join(config.target_urls)}")
     console.print(f"  Browsers: {', '.join(config.browser.browsers)}")
     console.print(f"  LLM: {config.llm.provider} ({config.llm.model})")
 
+    console.print("\n[bold cyan]Structure Created:[/bold cyan]")
+    console.print("  [cyan]config.yaml[/cyan] - Configuration file")
+    console.print("  [cyan]features/[/cyan] - Gherkin feature files (example + AI-generated)")
+    console.print("  [cyan]steps/[/cyan] - Python step definitions")
+    console.print("  [cyan]support/[/cyan] - Browser fixtures and pytest config")
+    console.print("  [cyan]analysis/[/cyan] - UI analysis JSON files")
+    console.print("  [cyan]baselines/[/cyan] - Visual regression baselines")
+    console.print("  [cyan]reports/[/cyan] - Test execution reports")
+
     console.print("\n[bold cyan]Next Steps:[/bold cyan]")
-    console.print("  1. Set your API keys in .env file:")
+    console.print("  1. Check the README:")
+    console.print("     [dim]$ cat README.md[/dim]")
+    console.print("\n  2. Run the example tests:")
+    console.print("     [dim]$ pytest -v[/dim]")
+    console.print("\n  3. Set your API keys in .env file:")
     console.print("     [dim]OPENAI_API_KEY=sk-...[/dim]")
     console.print("     [dim]ANTHROPIC_API_KEY=sk-ant-...[/dim]")
-    console.print("\n  2. Write test scenarios in [cyan].frontend-tester/features/[/cyan]")
-    console.print("\n  3. View/edit configuration:")
-    console.print("     [dim]$ frontend-tester config list[/dim]")
-    console.print("\n  4. Run tests (coming in Phase 2):")
-    console.print("     [dim]$ frontend-tester run[/dim]")
-    console.print("\n  5. Generate tests with AI (coming in Phase 3):")
+    console.print("\n  4. Generate tests with AI:")
     console.print(f"     [dim]$ frontend-tester generate {config.target_urls[0]}[/dim]")
+    console.print("\n  5. View/edit configuration:")
+    console.print("     [dim]$ frontend-tester config list[/dim]")
 
     console.print(
-        "\n[dim]For more information, see .frontend-tester/README.md[/dim]\n"
+        "\n[dim]For more information, see README.md in this directory[/dim]\n"
     )

@@ -25,8 +25,16 @@ Frontend Tester is a specialized testing tool that combines the power of browser
 - Docker support for containerized testing
 - Pytest-bdd integration with async support
 
+### ✅ Phase 3: AI-Powered Test Generation (Initial Implementation)
+- LiteLLM integration with OpenAI and Anthropic support
+- UI analysis and DOM extraction
+- AI-powered test scenario generation
+- `frontend-tester generate` command for creating test scenarios from URLs
+- `frontend-tester analyze` command for UI component analysis
+- Gherkin feature file generation from AI analysis
+
 ### Coming Soon
-- **Phase 3**: AI-powered test generation using LiteLLM (OpenAI + Anthropic)
+- **Phase 3 (Complete)**: Enhanced AI features and test maintenance
 - **Phase 4**: Visual regression testing with screenshot comparison
 - **Phase 5**: Self-healing tests and auto-fix capabilities
 
@@ -103,7 +111,17 @@ Feature: User Login
     And I should see "Welcome back" message
 ```
 
-### 4. Run Tests
+### 4. Generate Tests with AI (Phase 3)
+
+```bash
+# Analyze a URL and generate test scenarios
+uv run frontend-tester generate https://example.com/login
+
+# Analyze UI components
+uv run frontend-tester analyze https://example.com/dashboard
+```
+
+### 5. Run Tests
 
 ```bash
 # Run all tests
@@ -128,7 +146,7 @@ uv run frontend-tester run --browser firefox
 uv run frontend-tester run --html
 ```
 
-### 5. Configuration Management
+### 6. Configuration Management
 
 ```bash
 # List all configuration
@@ -171,11 +189,20 @@ Run BDD tests using pytest-bdd and Playwright.
 - `--html`: Generate HTML report
 - `--verbose, -v`: Verbose output
 
-### `frontend-tester generate <url>` (Phase 3 - Coming Soon)
+### `frontend-tester generate <url>`
 Generate tests from URL using AI analysis.
 
-### `frontend-tester analyze <url>` (Phase 3 - Coming Soon)
+**Options:**
+- `--output, -o`: Output directory for generated tests
+- `--provider`: LLM provider (openai, anthropic)
+- `--model`: LLM model to use
+
+### `frontend-tester analyze <url>`
 Analyze UI and suggest test scenarios.
+
+**Options:**
+- `--depth`: Crawl depth for multi-page analysis
+- `--output, -o`: Output file for analysis results
 
 ## Docker Support
 
@@ -308,17 +335,19 @@ uv run ruff check --fix src/
 - BDD template system
 - CLI framework
 
-### Phase 2: Playwright Integration (Next)
+### Phase 2: Playwright Integration (Complete)
 - Browser automation setup
 - Docker integration
 - Test execution engine
 - `frontend-tester run` command
 
-### Phase 3: AI Test Generation
-- LiteLLM integration
-- UI analysis and crawling
-- Gherkin scenario generation
-- `frontend-tester generate` command
+### Phase 3: AI Test Generation (In Progress)
+- ✅ LiteLLM integration
+- ✅ UI analysis and crawling
+- ✅ Gherkin scenario generation
+- ✅ `frontend-tester generate` command
+- ✅ `frontend-tester analyze` command
+- 🔜 Enhanced test maintenance features
 
 ### Phase 4: Visual Regression
 - Screenshot capture

@@ -5,7 +5,13 @@ from typing_extensions import Annotated
 
 from frontend_tester import __version__
 from frontend_tester.cli.utils import console, print_header
-from frontend_tester.cli.commands import init, config as config_cmd, run as run_cmd
+from frontend_tester.cli.commands import (
+    init,
+    config as config_cmd,
+    run as run_cmd,
+    analyze as analyze_cmd,
+    generate as generate_cmd,
+)
 
 # Create the main Typer app
 app = typer.Typer(
@@ -54,33 +60,8 @@ def main(
 app.command(name="init")(init.init_command)
 app.command(name="config")(config_cmd.config_command)
 app.command(name="run")(run_cmd.run_command)
-
-
-# Placeholder commands for future implementation
-@app.command()
-def generate(
-    url: Annotated[str, typer.Argument(help="URL of the application to test")],
-) -> None:
-    """
-    Generate tests from a URL using AI analysis.
-
-    [yellow]Coming in Phase 3: AI Test Generation[/yellow]
-    """
-    console.print("[yellow]This command is not yet implemented.[/yellow]")
-    console.print("It will be available in Phase 3: AI Test Generation")
-
-
-@app.command()
-def analyze(
-    url: Annotated[str, typer.Argument(help="URL of the application to analyze")],
-) -> None:
-    """
-    Analyze UI and suggest test scenarios.
-
-    [yellow]Coming in Phase 3: AI Test Generation[/yellow]
-    """
-    console.print("[yellow]This command is not yet implemented.[/yellow]")
-    console.print("It will be available in Phase 3: AI Test Generation")
+app.command(name="analyze")(analyze_cmd.analyze_command)
+app.command(name="generate")(generate_cmd.generate_command)
 
 
 if __name__ == "__main__":

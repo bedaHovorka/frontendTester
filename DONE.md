@@ -2,6 +2,41 @@
 
 This file tracks completed milestones and features.
 
+## 2025-12-31 - Phase 3 Bug Fix #3: TEST_DIR Restructuring
+
+**Issue:** Test example files were being created in hidden `.frontend-tester/` directory instead of visible location
+
+**Changes:**
+- Restructured project initialization to create **two separate directories**:
+  - `.frontend-tester/` - Configuration and AI-generated tests (empty features/steps initially)
+  - `TEST_DIR/` - Visible example tests for users to learn from
+- Updated `src/frontend_tester/core/project.py`:
+  - Modified `create_project_structure()` to create both directories
+  - Added `_create_test_dir_readme()` for TEST_DIR documentation
+  - Updated `_create_project_readme()` to clarify directory purposes
+- Updated `src/frontend_tester/cli/commands/init.py`:
+  - Updated command docstring and summary output
+  - Reordered "Next Steps" to prioritize example examination
+  - Added "Directories Created" section to init output
+- Updated `tests/test_project.py`:
+  - Verified both directory structures are created correctly
+  - Verified TEST_DIR has all example files
+  - Verified .frontend-tester is empty and ready for generated content
+
+**Benefits:**
+- ✅ Visible TEST_DIR for easy discovery and learning
+- ✅ Clear separation: examples vs generated content
+- ✅ Better onboarding experience
+- ✅ Users can immediately run `cd TEST_DIR && pytest -v`
+
+**Testing:**
+- All 31 unit tests pass
+- Integration tested with temporary project creation
+- Verified directory structures and file contents
+
+**Documentation:**
+- Created PHASE3_FIXES_PART3.md with full details
+
 ## Phase 1: Project Structure + Basic CLI (✅ Complete)
 
 ### 2025-12-29 - Initial Project Setup
@@ -194,22 +229,188 @@ This file tracks completed milestones and features.
 - Added pytest-asyncio for async testing
 - All tests passing: 18 total (11 Phase 1 + 7 Phase 2)
 
+## Phase 3: AI Test Generation (✅ Complete)
+
+### 2025-12-31 - AI-Powered Test Generation Implementation
+
+**Configuration**
+- Added `app_repo` and `test_repo` paths to `ProjectConfig`:
+  - `app_repo` - Application repository (read-only reference)
+  - `test_repo` - Test repository (where tests are generated)
+- Updated LLM configuration with API key management
+
+**Dependencies**
+- Added AI dependencies to core requirements:
+  - `litellm>=1.0.0` - Unified LLM interface
+  - `openai>=1.0.0` - OpenAI API support
+  - `anthropic>=0.18.0` - Anthropic/Claude API support
+  - `beautifulsoup4>=4.12.0` - HTML parsing
+  - `lxml>=5.0.0` - Fast HTML/XML processing
+
+**LLM Client** (`ai/client.py`)
+- Created `LLMClient` wrapper using LiteLLM
+- Supports multiple providers (OpenAI, Anthropic, etc.)
+- Async and sync methods for chat completion
+- System prompt + user prompt helpers
+- Configurable temperature and max tokens
+
+**Prompt Templates** (`ai/prompts/`)
+- UI Analysis prompts (`ui_analysis.py`):
+  - Page structure analysis
+  - Interactive element extraction
+  - JSON-formatted responses
+- Test Generation prompts (`test_generation.py`):
+  - Gherkin scenario generation
+  - Feature file generation
+  - Python step definition generation
+  - BDD best practices embedded
+
+**UI Analyzer** (`ai/analyzer.py`)
+- `UIAnalyzer` class for page analysis:
+  - Basic HTML parsing with BeautifulSoup
+  - Extracts buttons, links, inputs, selects, textareas, forms
+  - AI-powered advanced analysis (user flows, scenarios)
+  - Element selector generation (id, data-testid, name, text)
+  - Simplified HTML for LLM processing
+  - JSON export of analysis results
+
+**Test Generator** (`ai/generator.py`)
+- `TestGenerator` class for test creation:
+  - Gherkin scenario generation from analysis
+  - Complete feature file generation
+  - Python step definition generation
+  - Multi-flow support (generates separate files per flow)
+  - Automatic step extraction from feature files
+  - Saves to organized directory structure (features/, steps/)
+
+**CLI Commands**
+- `frontend-tester analyze` (`cli/commands/analyze.py`):
+  - Analyze web page and extract UI structure
+  - Launches browser, navigates to URL
+  - Performs basic + AI analysis
+  - Displays summary (element counts, flows, forms)
+  - Saves analysis to JSON file
+  - Options: --output, --browser, --headed
+
+- `frontend-tester generate` (`cli/commands/generate.py`):
+  - Generate complete test suite from URL
+  - Uses existing analysis or creates new one
+  - Generates feature files + step definitions
+  - Supports multiple user flows
+  - Options: --output-dir, --app-name, --browser, --headed, --analysis
+
+**Docker Integration**
+- Updated `Dockerfile`:
+  - Added AI dependencies (`uv sync --extra ai`)
+  - Created `/app_repo` and `/test_repo` mount points
+
+- Updated `docker-compose.yml`:
+  - Added volume mounts for APP_REPO and TEST_REPO
+  - APP_REPO mounted as read-only (`:ro`)
+  - TEST_REPO mounted as read-write
+  - Added LLM API key environment variables
+  - New services:
+    - `analyze` - Run UI analysis in container
+    - `generate` - Generate tests in container
+
+**Repository Setup**
+- Created TEST_REPO at `/tmp/dummy_fe_app`
+- Initialized as git repository
+- APP_REPO at `/home/beda/work/dummy_fe_app` (existing)
+
+**Key Features**
+- Blackbox testing approach (no APP_REPO modification)
+- Multi-repo architecture (separate app and test repos)
+- AI-powered scenario generation
+- Playwright integration for live page analysis
+- Docker containerization for consistent environments
+- Multi-browser support in all services
+
+### 2025-12-31 - Phase 3 Debugging and Fixes
+
+**Issues Found and Fixed**
+- Fixed LLM client async/await issue (using `acompletion` instead of `completion`)
+- Added async context manager support to BrowserManager (`__aenter__`, `__aexit__`)
+- Added `create_page()` method to BrowserManager
+- Implemented LLM response cleaning to remove markdown code fences
+- Moved assertpy to main dependencies for test suite
+- Fixed test file naming mismatch (test_common_steps.py)
+
+**New Tests**
+- Created comprehensive LLM client test suite (8 tests)
+- All tests passing: 31/31 ✅
+
+**End-to-End Verification**
+- ✅ Analyze command works with local app (http://127.0.0.1:3000)
+- ✅ Generate command produces clean feature files and step definitions
+- ✅ No markdown artifacts in generated code
+- ✅ All unit tests passing
+
+**Documentation**
+- Created PHASE3_FIXES.md with detailed debugging report
+- Documented all fixes, testing results, and recommendations
+
+### 2025-12-31 (Evening) - Phase 3 Additional Debugging Session
+
+**Critical Bugs Fixed**
+1. **Missing Step Definitions in Generic Scenarios Path**
+   - Problem: When no user flows detected, only feature file generated
+   - Fix: Added step extraction and generation to generic scenarios path
+   - Location: `src/frontend_tester/ai/generator.py:161-194`
+
+2. **Markdown Code Fences Not Cleaned in Generic Path**
+   - Problem: ```gherkin and ```python artifacts in generated files
+   - Fix: Call `_clean_code_response()` before saving in generic path
+   - Location: Same as above
+
+**Testing & Verification**
+- Created simple test HTML page with login form and navigation
+- Tested with gpt-3.5-turbo to avoid rate limits
+- Before fix: Only 1 file generated, with markdown artifacts
+- After fix: 2 clean files generated (feature + steps)
+- All 31 unit tests continue to pass ✅
+
+**Generated File Quality**
+- Feature files: Clean Gherkin syntax (52 lines)
+- Step definitions: Clean Playwright code (65 lines)
+- No markdown artifacts in either file
+- Production-ready test code
+
+**Documentation**
+- Created PHASE3_FIXES_PART2.md with detailed debugging report
+- Includes root cause analysis, testing methodology, and impact assessment
+
+**Impact**
+- Simple applications now get complete test suites
+- Consistent behavior for all application types
+- Better user experience across all use cases
+
 ## Statistics
 
-- **Files Created**: 40+
-- **Lines of Code**: ~4500+ (excluding tests)
-- **Commands Implemented**: 3 (init, config, run)
-- **Commands Planned**: 2 (generate, analyze)
-- **Total Tests**: 18 (all passing)
+- **Files Created**: 57+
+- **Lines of Code**: ~7650+ (excluding tests)
+- **Commands Implemented**: 5 (init, config, run, analyze, generate)
+- **Total Tests**: 31 (all passing) ✅
 - **Browser Support**: Chromium, Firefox, WebKit
 - **Step Definitions**: 40+ reusable steps
+- **LLM Providers Supported**: OpenAI, Anthropic, Ollama, Gemini
+- **AI Modules**: 3 (client, analyzer, generator)
+- **Prompt Templates**: 6 specialized prompts
 
 ## Next Steps
 
-Phase 3: AI Test Generation
-- LiteLLM integration
-- UI analysis and element detection
-- Automated test scenario generation
-- Automated step definition generation
+Phase 4: Visual Regression Testing
+- Screenshot capture with Playwright
+- Image comparison with pixelmatch
+- Baseline management system
+- Visual diff reporting
+- Git worktree for REFERENTIAL/CHANGED states
+- Three change modes: functional, visual, refactor
+
+Phase 5: Fix/Autofix System
+- Self-healing test capabilities
+- Automatic selector updates
+- AI-suggested fixes for broken tests
+- Test maintenance recommendations
 
 See PLAN.md for detailed upcoming tasks.

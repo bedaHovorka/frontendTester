@@ -48,7 +48,7 @@ def run_command(
 ) -> None:
     """Run tests using pytest-bdd.
 
-    Executes BDD tests from the .frontend-tester/features directory using Playwright.
+    Executes BDD tests from the features directory using Playwright.
 
     Examples:
         # Run all tests
@@ -74,20 +74,19 @@ def run_command(
         print_error("Not in a Frontend Tester project. Run 'frontend-tester init' first.")
         raise SystemExit(1)
 
-    frontend_tester_dir = project_root / ".frontend-tester"
-    features_dir = frontend_tester_dir / "features"
-    support_dir = frontend_tester_dir / "support"
+    features_dir = project_root / "features"
+    support_dir = project_root / "support"
 
     # Check if features exist
     if not features_dir.exists() or not any(features_dir.glob("*.feature")):
-        print_error("No feature files found in .frontend-tester/features/")
+        print_error("No feature files found in features/")
         print_info("Create feature files or use 'frontend-tester generate' to create them.")
         raise SystemExit(1)
 
     # Build pytest command
     pytest_args = ["pytest"]
 
-    # Add features directory (relative to .frontend-tester/)
+    # Add features directory
     # Note: pytest will automatically discover conftest.py in support/ subdirectory
     pytest_args.append("features")
 
@@ -146,7 +145,7 @@ def run_command(
 
         result = subprocess.run(
             pytest_args,
-            cwd=frontend_tester_dir,  # Run from .frontend-tester/ so pytest finds support/conftest.py
+            cwd=project_root,  # Run from project root so pytest finds support/conftest.py
             env=full_env,
         )
 
